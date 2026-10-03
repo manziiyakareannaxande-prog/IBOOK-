@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ibook — Iyakare Books</title>
+<style>
+  :root{
+    --brand:#4f46e5; --brand-dark:#3730a3; --brand-2:#7c3aed;
+    --bg:#f6f7fb; --card:#ffffff; --text:#111827; --muted:#6b7280;
+    --border:#e5e7eb; --radius:14px; --shadow:0 4px 14px rgba(17,24,39,.08);
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition: background 0.3s, color 0.3s;}
+  .hidden{display:none !important;}
+  
+  /* Header */
+  .site-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);transition: background 0.3s;}
+  .header-inner{max-width:1150px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
+  .logo-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:20px;}
+  .logo strong{display:block;font-size:18px;line-height:1.1;}
+  .logo small{color:var(--muted);font-size:11.5px;letter-spacing:.4px;text-transform:uppercase;}
+  .nav{display:flex;gap:8px;}
+  .nav-btn{border:1px solid transparent;background:transparent;color:var(--muted);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+  .nav-btn:hover{background:#eef0f7;color:var(--text);}
+  .nav-btn.active{background:var(--brand);color:#fff;}
+  
+  /* Pages & Banners */
+  .page{display:none;} .page.active{display:block;}
+  .welcome-hero {position: relative; width: 100%; height: 50vh; min-height: 380px; background-image: url('bookshelf.jpg'); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; text-align: center;}
+  .welcome-overlay {background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(5px); padding: 40px 60px; border-radius: 20px; color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: fadeIn 1.2s ease-out;}
+  .welcome-overlay h1 {font-size: clamp(3rem, 8vw, 5rem); margin: 0 0 10px 0; letter-spacing: 6px; text-transform: uppercase; font-weight: 900;}
+  .welcome-overlay p {font-size: clamp(1rem, 2vw, 1.3rem); margin: 0; opacity: 0.9; letter-spacing: 1px; font-weight: 400;}
+  @keyframes fadeIn {from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }}
+
+  /* Hero & Search */
+  .hero{max-width:1150px;margin:0 auto;padding:44px 20px 16px;text-align:center;}
+  .hero h1{font-size:clamp(26px,4vw,40px);margin:0 0 10px;letter-spacing:-.5px;}
+  .hero p{color:var(--muted);margin:0 0 24px;font-size:16px;}
+  .search-box{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:11px 18px;box-shadow:var(--shadow);transition: background 0.3s;}
+  .search-box svg{width:18px;height:18px;stroke:var(--muted);flex:none;}
+  .search-box input{flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--text);font-family:inherit;}
+
+  /* Book Grid */
+  .book-grid{max-width:1150px;margin:0 auto;padding:28px 20px 80px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:24px;}
+  .book-card{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .18s ease, box-shadow .18s ease, background 0.3s;}
+  .book-card:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(17,24,39,.14);}
+  .cover{position:relative;aspect-ratio:2/3;background:#e9eaf2;cursor:pointer;overflow:hidden;}
+  .cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cover.no-cover{display:grid;place-items:center;text-align:center;padding:14px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;font-weight:700;font-size:15px;line-height:1.35;}
+  .book-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1;}
+  .book-info h3{margin:0;font-size:15px;line-height:1.3;}
+  .book-info p{margin:0;color:var(--muted);font-size:12.5px;}
+  .btn-read{margin-top:10px;border:none;background:var(--brand);color:#fff;padding:9px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+  .btn-read:hover{background:var(--brand-dark);}
+  
+  /* Action Buttons */
+  .book-actions {display: flex; justify-content: space-between; align-items: center; padding: 0 14px 14px; gap: 6px; border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto;}
+  .action-btn {background: transparent; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; font-family: inherit; transition: .15s;}
+  .action-btn:hover {color: var(--text); transform: scale(1.05);}
+  .action-btn.active-like {color: #ef4444;}
+  .action-btn.active-save {color: var(--brand);}
+  .action-btn .count {font-size: 11px; opacity: 0.8;}
+
+  /* Floating Like */
+  .floating-like {position: fixed; font-size: 40px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 999;}
+  @keyframes floatUp {0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-100px) scale(1.5); opacity: 0; }}
+
+  /* Modals */
+  .modal {display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center;}
+  .modal.open {display: flex;}
+  .modal-content {background: #fff; padding: 24px; border-radius: 14px; width: 90%; max-width: 340px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;}
+  .close-modal {position: absolute; top: 10px; right: 16px; font-size: 28px; cursor: pointer; color: #6b7280; line-height: 1;}
+  .modal-content h2 {margin: 0 0 16px; font-size: 20px;}
+  .settings-list {list-style: none; padding: 0; margin: 0;}
+  .settings-list li {display: flex; align-items: center; gap: 12px; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-weight: 500; font-size: 15px;}
+  .settings-list li:last-child {border-bottom: none;}
+  .settings-list li:hover {background: #f3f4f6; border-radius: 8px;}
+  .settings-list .icon {font-size: 20px;}
+  .input-field {width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; font-family: inherit; font-size: 14px;}
+  .btn-primary {width: 100%; background: var(--brand); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit;}
+
+  /* Reader */
+  .reader-modal{position:fixed;inset:0;background:#111827;display:none;flex-direction:column;z-index:100;}
+  .reader-modal.open{display:flex;}
+  .reader-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#1f2937;color:#fff;font-size:14.5px;font-weight:600;}
+  .reader-bar .r-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .reader-bar a,.reader-bar button{background:rgba(255,255,255,.12);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;margin-left:8px;font-family:inherit;white-space:nowrap;}
+  .reader-bar a:hover,.reader-bar button:hover{background:rgba(255,255,255,.24);}
+  #readerFrame{flex:1;width:100%;border:none;background:#525659;}
+
+  /* Dark Mode */
+  body.dark-mode { --bg:#111827; --card:#1f2937; --text:#f9fafb; --muted:#9ca3af; --border:#374151; --shadow:0 4px 14px rgba(0,0,0,.5); }
+  body.dark-mode .modal-content { background: #1f2937; color: #f9fafb; }
+  body.dark-mode .settings-list li { border-bottom-color: #374151; }
+  body.dark-mode .settings-list li:hover { background: #374151; }
+  body.dark-mode .search-box { background: #1f2937; }
+  body.dark-mode .search-box input { color: #f9fafb; }
+  body.dark-mode .site-header { background: rgba(31, 41, 55, .92); }
+  body.dark-mode .logo strong, body.dark-mode .logo small { color: #f9fafb; }
+  body.dark-mode .nav-btn { color: #9ca3af; }
+  body.dark-mode .nav-btn:hover { background: #374151; color: #fff; }
+  body.dark-mode .nav-btn.active { background: var(--brand); color: #fff; }
+  body.dark-mode .input-field { background: #374151; border-color: #4b5563; color: #fff; }
+  body.dark-mode .book-actions { border-top-color: #374151; }
+
+  @media (max-width:520px){
+    .book-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:16px;padding:20px 14px 70px;}
+    .hero{padding:30px 14px 10px;}
+    .nav-btn{padding:8px 12px;font-size:13px;}
+    .header-inner{padding:10px 14px;}
+    .welcome-overlay { padding: 30px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="#" onclick="showPage('home');return false;">
+      <span class="logo-mark">I</span>
+      <span><strong>Ibook</strong><small>Iyakare Books</small></span>
+    </a>
+    <nav class="nav">
+      <button id="navHome" class="nav-btn active" onclick="showPage('home')">Home</button>
+      <button id="navSettings" class="nav-btn" onclick="toggleSettings()">Settings</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="page-home" class="page active">
+    <div class="welcome-hero">
+      <div class="welcome-overlay">
+        <h1>WELCOME</h1>
+        <p>To Iyakare Books. Discover, read, and enjoy free literature.</p>
+      </div>
+    </div>
+    <div class="hero">
+      <h1>Read free books online</h1>
+      <p>Every book on Ibook is free to read. No sign-up. No payment.</p>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
+        <input id="searchInput" type="search" placeholder="Search by book title or author…" />
+      </div>
+    </div>
+    <div id="bookGrid" class="book-grid">
+      <div class="loading"><div class="spinner"></div>Loading books…</div>
+    </div>
+  </section>
+</main>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="toggleSettings()">&times;</span>
+    <h2>Settings</h2>
+    <ul class="settings-list">
+      <li onclick="toggleDarkMode()" id="themeToggle"><span class="icon">🌙</span> <span class="text">Theme (Light / Dark)</span></li>
+      <li onclick="showLoginModal()"><span class="icon">🙎‍♂️</span> <span class="text">Account Center</span></li>
+      <li onclick="showSavedBooks()"><span class="icon">📚</span> <span class="text">Saved Books</span></li>
+      <li onclick="alert('Subscription coming soon!')"><span class="icon">💵</span> <span class="text">Subscription</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+    <h2>Account Center</h2>
+    <p id="loginStatus" style="font-size:14px; color:#6b7280; margin-bottom:12px;">Create an account to like and save books.</p>
+    <input type="text" id="usernameInput" class="input-field" placeholder="Enter a username" />
+    <button class="btn-primary" onclick="handleLogin()" id="loginBtn">Log In / Sign Up</button>
+    <button class="btn-primary" onclick="handleLogout()" id="logoutBtn" style="background:#ef4444; margin-top:8px; display:none;">Log Out</button>
+  </div>
+</div>
+
+<!-- SAVED BOOKS MODAL -->
+<div id="savedBooksModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('savedBooksModal')">&times;</span>
+    <h2>📚 Saved Books</h2>
+    <div id="savedBooksList"></div>
+  </div>
+</div>
+
+<!-- READER -->
+<div id="readerModal" class="reader-modal">
+  <div class="reader-bar">
+    <span id="readerTitle" class="r-title">Book</span>
+    <span>
+      <a id="readerDownload" href="#" download>Download</a>
+      <button onclick="closeReader()">Close ✕</button>
+    </span>
+  </div>
+  <iframe id="readerFrame" title="Book reader"></iframe>
+</div>
+
+<script>
+/* =========================================================
+   STATE & LOCAL STORAGE
+   ========================================================= */
+let allBooks = [];
+
+function getStats() { return JSON.parse(localStorage.getItem('ibook-stats') || '{}'); }
+function saveStats(stats) { localStorage.setItem('ibook-stats', JSON.stringify(stats)); }
+function getSavedBooks() { return JSON.parse(localStorage.getItem('ibook-saved') || '[]'); }
+function setSavedBooks(arr) { localStorage.setItem('ibook-saved', JSON.stringify(arr)); }
+function getUser() { return localStorage.getItem('ibook-user'); }
+function setUser(name) { localStorage.setItem('ibook-user', name); }
+function clearUser() { localStorage.removeItem('ibook-user'); }
+
+/* =========================================================
+   PAGE NAVIGATION & MODALS
+   ========================================================= */
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('navHome').classList.toggle('active', name === 'home');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function toggleSettings() { document.getElementById('settingsModal').classList.toggle('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+/* =========================================================
+   ACCOUNT SYSTEM
+   ========================================================= */
+function showLoginModal() {
+  document.getElementById('settingsModal').classList.remove('open');
+  const user = getUser();
+  if (user) {
+    document.getElementById('loginStatus').textContent = `Logged in as: ${user}`;
+    document.getElementById('usernameInput').style.display = 'none';
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'block';
+  } else {
+    document.getElementById('loginStatus').textContent = 'Create an account to like and save books.';
+    document.getElementById('usernameInput').style.display = 'block';
+    document.getElementById('loginBtn').style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'none';
+  }
+  document.getElementById('loginModal').classList.add('open');
+}
+function handleLogin() {
+  const name = document.getElementById('usernameInput').value.trim();
+  if (!name) { alert('Please enter a username.'); return; }
+  setUser(name);
+  closeModal('loginModal');
+  renderBooks(document.getElementById('searchInput').value);
+}
+function handleLogout() {
+  clearUser();
+  closeModal('loginModal');
+  renderBooks(document.getElementById('searchInput').value);
+}
+
+/* =========================================================
+   LOAD BOOKS
+   ========================================================= */
+async function loadBooks(){
+  const grid = document.getElementById('bookGrid');
+  try {
+    const res = await fetch('books.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('books.json not found');
+    const data = await res.json();
+    allBooks = Array.isArray(data) ? data : [];
+    renderBooks(document.getElementById('searchInput').value);
+  } catch (err) {
+    grid.innerHTML = `<p class="empty"><strong>Could not load the book list.</strong><br>Make sure <code>books.json</code> exists.</p>`;
+  }
+}
+
+/* =========================================================
+   RENDER BOOK GRID
+   ========================================================= */
+function renderBooks(filter = ''){
+  const grid = document.getElementById('bookGrid');
+  grid.innerHTML = '';
+  const q = filter.trim().toLowerCase();
+  let books = allBooks;
+  if (q) { books = books.filter(b => (b.title||'').toLowerCase().includes(q) || (b.author||'').toLowerCase().includes(q)); }
+  if (!books.length) { grid.innerHTML = `<p class="empty">No books found.</p>`; return; }
+  books.forEach(book => grid.appendChild(buildCard(book)));
+}
+
+function buildCard(book){
+  const card = document.createElement('article');
+  card.className = 'book-card';
+  const bookId = book.title.replace(/\s+/g, '_'); 
+
+  // Cover
+  const cover = document.createElement('div');
+  cover.className = 'cover';
+  function showPlaceholder(){ cover.classList.add('no-cover'); cover.innerHTML = ''; cover.textContent = book.title || 'Untitled'; }
+  if (book.cover && book.cover.trim()) {
+    const img = document.createElement('img'); img.src = book.cover; img.alt = book.title; img.loading = 'lazy'; img.onerror = showPlaceholder;
+    cover.appendChild(img);
+  } else { showPlaceholder(); }
+  cover.addEventListener('click', () => openReader(book, bookId));
+
+  // Info
+  const info = document.createElement('div');
+  info.className = 'book-info';
+  const h3 = document.createElement('h3'); h3.textContent = book.title || 'Untitled';
+  const p = document.createElement('p'); p.textContent = book.author ? 'by ' + book.author : 'Unknown author';
+  
+  const btn = document.createElement('button'); 
+  btn.className = 'btn-read'; 
+  btn.textContent = 'Read now';
+  btn.addEventListener('click', () => openReader(book, bookId));
+  info.append(h3, p, btn);
+
+  // Actions (Views, Like, Share, Save)
+  const stats = getStats()[bookId] || { views: 0, likes: 0 };
+  const savedBooks = getSavedBooks();
+  const isSaved = savedBooks.includes(bookId);
+  const user = getUser();
+  const isLiked = user ? (localStorage.getItem(`ibook-liked-${user}-${bookId}`) === 'true') : false;
+
+  const actions = document.createElement('div');
+  actions.className = 'book-actions';
+
+  const viewsBtn = document.createElement('button');
+  viewsBtn.className = 'action-btn'; viewsBtn.innerHTML = `👀 <span class="count">${stats.views}</span>`;
+  viewsBtn.onclick = (e) => { e.stopPropagation(); };
+
+  const likeBtn = document.createElement('button');
+  likeBtn.className = `action-btn ${isLiked ? 'active-like' : ''}`; likeBtn.innerHTML = `❤️ <span class="count">${stats.likes}</span>`;
+  likeBtn.onclick = (e) => { e.stopPropagation(); handleLike(bookId, likeBtn); };
+
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'action-btn'; shareBtn.innerHTML = `🔗 Share`;
+  shareBtn.onclick = (e) => { e.stopPropagation(); handleShare(book, bookId); };
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = `action-btn ${isSaved ? 'active-save' : ''}`; saveBtn.innerHTML = isSaved ? `🤍 Saved` : `🤍 Save`;
+  saveBtn.onclick = (e) => { e.stopPropagation(); handleSave(bookId, saveBtn); };
+
+  actions.append(viewsBtn, likeBtn, shareBtn, saveBtn);
+  card.append(cover, info, actions);
+  return card;
+}
+
+/* =========================================================
+   ACTION HANDLERS
+   ========================================================= */
+function openReader(book, bookId){
+  if (!book.pdf) { alert('This book has no PDF file listed.'); return; }
+  const stats = getStats();
+  if (!stats[bookId]) stats[bookId] = { views: 0, likes: 0 };
+  stats[bookId].views += 1;
+  saveStats(stats);
+  renderBooks(document.getElementById('searchInput').value); 
+
+  document.getElementById('readerTitle').textContent = book.title || 'Book';
+  document.getElementById('readerFrame').src = book.pdf;
+  const dl = document.getElementById('readerDownload');
+  dl.href = book.pdf; dl.download = (book.title || 'book') + '.pdf';
+  document.getElementById('readerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeReader(){
+  document.getElementById('readerModal').classList.remove('open');
+  document.getElementById('readerFrame').src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+function handleLike(bookId, btnElement){
+  const user = getUser();
+  if (!user) { alert('You need an account to like books. Please go to Settings > Account Center to sign up.'); return; }
+  const stats = getStats();
+  if (!stats[bookId]) stats[bookId] = { views: 0, likes: 0 };
+  const likeKey = `ibook-liked-${user}-${bookId}`;
+  const isLiked = localStorage.getItem(likeKey) === 'true';
+
+  if (isLiked) {
+    stats[bookId].likes = Math.max(0, stats[bookId].likes - 1);
+    localStorage.setItem(likeKey, 'false');
+    btnElement.classList.remove('active-like');
+  } else {
+    stats[bookId].likes += 1;
+    localStorage.setItem(likeKey, 'true');
+    btnElement.classList.add('active-like');
+    showFloatingLike(btnElement);
+  }
+  saveStats(stats);
+  renderBooks(document.getElementById('searchInput').value);
+}
+
+function showFloatingLike(btnElement) {
+  const rect = btnElement.getBoundingClientRect();
+  const likeEl = document.createElement('span');
+  likeEl.className = 'floating-like'; likeEl.textContent = '👍';
+  likeEl.style.left = `${rect.left}px`; likeEl.style.top = `${rect.top}px`;
+  document.body.appendChild(likeEl);
+  setTimeout(() => likeEl.remove(), 800);
+}
+
+function handleShare(book, bookId){
+  const shareData = {
+    title: book.title,
+    text: `Read "${book.title}" by ${book.author} for free on Ibook!`,
+    url: window.location.href
+  };
+  if (navigator.share) { navigator.share(shareData).catch(console.error); }
+  else {
+    navigator.clipboard.writeText(window.location.href).then(() => { alert('Link copied to clipboard! Share it with your friends.'); });
+  }
+}
+
+function handleSave(bookId, btnElement){
+  const user = getUser();
+  if (!user) { alert('You need an account to save books. Please go to Settings > Account Center to sign up.'); return; }
+  let saved = getSavedBooks();
+  if (saved.includes(bookId)) {
+    saved = saved.filter(id => id !== bookId);
+    btnElement.classList.remove('active-save'); btnElement.innerHTML = `🤍 Save`;
+  } else {
+    saved.push(bookId);
+    btnElement.classList.add('active-save'); btnElement.innerHTML = `🤍 Saved`;
+    alert('Book saved! You can find it in Settings > Saved Books.');
+  }
+  setSavedBooks(saved);
+}
+
+/* =========================================================
+   SAVED BOOKS MODAL
+   ========================================================= */
+function showSavedBooks() {
+  document.getElementById('settingsModal').classList.remove('open');
+  const saved = getSavedBooks();
+  const list = document.getElementById('savedBooksList');
+  list.innerHTML = '';
+  if (saved.length === 0) {
+    list.innerHTML = '<p style="color:#6b7280; font-size:14px;">You haven\'t saved any books yet.</p>';
+  } else {
+    saved.forEach(bookId => {
+      const book = allBooks.find(b => b.title.replace(/\s+/g, '_') === bookId);
+      if (book) {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:10px; border-bottom:1px solid #ddd; cursor:pointer; font-size:14px;';
+        item.innerHTML = `<strong>${book.title}</strong><br><small>${book.author || 'Unknown'}</small>`;
+        item.onclick = () => { closeModal('savedBooksModal'); openReader(book, bookId); };
+        list.appendChild(item);
+      }
+    });
+  }
+  document.getElementById('savedBooksModal').classList.add('open');
+}
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('ibook-theme', isDark ? 'dark' : 'light');
+  const iconSpan = document.querySelector('#themeToggle .icon');
+  if (iconSpan) iconSpan.textContent = isDark ? '☀️' : '🌙';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('ibook-theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    const iconSpan = document.querySelector('#themeToggle .icon');
+    if (iconSpan) iconSpan.textContent = '☀️';
+  }
+});
+
+/* =========================================================
+   INIT
+   ========================================================= */
+loadBooks();
+</script>
+</body>
+                             </html>
